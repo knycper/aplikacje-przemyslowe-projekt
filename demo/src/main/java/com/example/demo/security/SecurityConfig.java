@@ -26,10 +26,29 @@ public class SecurityConfig {
 
         // Reguły dostępu
         http.authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/register", "/login", "/register", "/h2-console/**", "/css/**", "/js/**", "/img/**")
-                .permitAll()  // dostęp bez logowania
-                .anyRequest()
-                .authenticated() // reszta wymaga logowania
+                // Swagger (musi być publiczny)
+                .requestMatchers(
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/v3/api-docs/**"
+                ).permitAll()
+
+                // rejestracja i logowanie — oczywiście muszą być publiczne
+                .requestMatchers(
+                        "/api/auth/register",
+                        "/login",
+                        "/register",
+                        "/css/**",
+                        "/js/**",
+                        "/img/**",
+                        "/h2-console/**"
+                ).permitAll()
+
+                // WSZYSTKIE endpointy API wymagają logowania
+                .requestMatchers("/api/**").authenticated()
+
+                // Wszystko inne też wymaga użytkownika
+                .anyRequest().authenticated()
         );
 
         http.userDetailsService(userDetailsService);

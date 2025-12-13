@@ -1,4 +1,4 @@
-package com.example.demo.controller;
+package com.example.demo.controller.api;
 
 import com.example.demo.domain.dto.RegisterDTO;
 import com.example.demo.service.UserService;
