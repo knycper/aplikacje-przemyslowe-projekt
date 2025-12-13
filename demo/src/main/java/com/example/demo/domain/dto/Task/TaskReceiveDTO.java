@@ -1,11 +1,14 @@
 package com.example.demo.domain.dto.Task;
 
-import com.example.demo.domain.dto.Category.CategoryDTO;
 import com.example.demo.domain.entity.Status;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
 
 @NoArgsConstructor
 @Getter
@@ -20,6 +23,9 @@ public class TaskReceiveDTO {
     @NotBlank
     private Status status;
 
+    @Nullable
+    private UUID categoryId;
+
     @NotBlank
-    private CategoryDTO category;
+    private LocalDateTime dueDate;
 }

@@ -1,13 +1,16 @@
 package com.example.demo.security;
 
 import com.example.demo.security.service.CustomUserDetailsService;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -23,6 +26,13 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
         http.csrf(csrf -> csrf.disable());
+
+        http.exceptionHandling(exception -> exception
+                .defaultAuthenticationEntryPointFor(
+                        restAuthenticationEntryPoint(),
+                        new AntPathRequestMatcher("/api/**")
+                )
+        );
 
         // Reguły dostępu
         http.authorizeHttpRequests(auth -> auth
@@ -69,6 +79,21 @@ public class SecurityConfig {
         http.headers(headers -> headers.frameOptions().disable());
 
         return http.build();
+    }
+
+    @Bean
+    public AuthenticationEntryPoint restAuthenticationEntryPoint() {
+        return (request, response, authException) -> {
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json");
+            response.getWriter().write("""
+            {
+              "status": 401,
+              "error": "Unauthorized",
+              "message": "Authentication is required to access this API"
+            }
+            """);
+        };
     }
 
     @Bean

@@ -24,6 +24,7 @@ public class Task {
     @Column(name="description")
     private String description;
 
+    @Enumerated(EnumType.STRING)
     @Column(name="status", nullable = false)
     private Status status;
 
