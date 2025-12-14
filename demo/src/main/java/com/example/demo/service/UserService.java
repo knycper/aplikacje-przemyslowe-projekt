@@ -33,7 +33,6 @@ public class UserService {
         User user = new User();
         user.setUsername(req.getUsername());
         user.setPassword(passwordEncoder.encode(req.getPassword()));
-        System.out.println(user.getPassword());
         userRepository.save(user);
     }
 
