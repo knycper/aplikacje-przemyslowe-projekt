@@ -4,12 +4,12 @@ import com.example.demo.domain.dto.Category.CategoryDTO;
 import com.example.demo.domain.dto.Category.CategoryReceiveDTO;
 import com.example.demo.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -66,7 +66,7 @@ public class CategoryController {
             )
     })
     @PostMapping
-    public ResponseEntity<CategoryDTO> createCategory(@RequestBody CategoryReceiveDTO category) {
+    public ResponseEntity<CategoryDTO> createCategory(@Valid @RequestBody CategoryReceiveDTO category) {
         return ResponseEntity.status(HttpStatus.CREATED).body(categoryService.addCategory(category));
     }
 
@@ -108,7 +108,7 @@ public class CategoryController {
             )
     })
     @PutMapping("/{id}")
-    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable UUID id, @RequestBody CategoryReceiveDTO categoryReceiveDTO) {
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable UUID id, @Valid @RequestBody CategoryReceiveDTO categoryReceiveDTO) {
         return ResponseEntity.ok(categoryService.updateCategory(categoryReceiveDTO, id));
     }
 

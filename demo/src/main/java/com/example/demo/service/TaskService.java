@@ -1,31 +1,40 @@
 package com.example.demo.service;
 
-import com.example.demo.domain.dto.Task.TaskDTO;
 import com.example.demo.domain.dto.Task.TaskReceiveDTO;
 import com.example.demo.domain.dto.Task.TaskResponseDTO;
 import com.example.demo.domain.dto.Task.TasksDashboard;
 import com.example.demo.domain.entity.Category;
-import com.example.demo.domain.entity.Status;
+import com.example.demo.domain.enums.DeadlineFilter;
+import com.example.demo.domain.enums.Status;
 import com.example.demo.domain.entity.Task;
 import com.example.demo.domain.entity.User;
+import com.example.demo.domain.enums.TaskSort;
 import com.example.demo.domain.exceptions.CsvIOException;
 import com.example.demo.domain.exceptions.NotFoundException;
 import com.example.demo.domain.mapper.TaskMapper;
 import com.example.demo.repository.CategoryRepository;
 import com.example.demo.repository.TaskRepository;
 import com.example.demo.repository.UserRepository;
+import com.example.demo.repository.dao.DashboardJdbcDao;
 import com.opencsv.CSVWriter;
 import jakarta.transaction.Transactional;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.OutputStreamWriter;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Validated
 @Service
 public class TaskService {
     private final TaskRepository taskRepository;
@@ -33,46 +42,42 @@ public class TaskService {
     private final CategoryRepository categoryRepository;
     private final TaskMapper taskMapper;
     private final UserService userService;
+    private final DashboardJdbcDao dashboardJdbcDao;
 
     @Autowired
-    public TaskService(TaskRepository taskRepository, UserRepository userRepository, CategoryRepository categoryRepository, TaskMapper taskMapper, UserService userService) {
+    public TaskService(TaskRepository taskRepository, UserRepository userRepository, CategoryRepository categoryRepository, TaskMapper taskMapper, UserService userService, DashboardJdbcDao dashboardJdbcDao) {
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
         this.categoryRepository = categoryRepository;
         this.taskMapper = taskMapper;
         this.userService = userService;
+        this.dashboardJdbcDao = dashboardJdbcDao;
     }
 
-    public List<TaskResponseDTO> getFilteredTasks(Status status, UUID categoryId) {
-        List<Task> tasks = taskRepository.findAll().stream()
-                .filter(t -> t.getUser().getId().equals(userService.getLoggedUserId()))
-                .toList();
+    public Page<TaskResponseDTO> getTasks(String title, Status status, UUID categoryId, DeadlineFilter deadlineFilter, Pageable pageable) {
+        LocalDateTime before = null;
+        LocalDateTime after = null;
 
-        if (status != null) {
-            tasks = tasks.stream()
-                    .filter(t -> t.getStatus() == status)
-                    .toList();
+        if (deadlineFilter == DeadlineFilter.BEFORE_DEADLINE) {
+            before = LocalDateTime.now();
+        } else if (deadlineFilter == DeadlineFilter.AFTER_DEADLINE) {
+            after = LocalDateTime.now();
         }
 
-        if (categoryId != null) {
-            tasks = tasks.stream()
-                    .filter(t -> t.getCategory() != null && t.getCategory().getId().equals(categoryId)).toList();
-        }
+        Page<Task> tasks = taskRepository.findFiltered(userService.getLoggedUserId(), title, status, categoryId, before, after, pageable );
 
-        return tasks.stream()
-                .map(taskMapper::mapToResponseDTO)
-                .toList();
+        return tasks.map(taskMapper::mapToResponseDTO);
 
     }
 
-    public TaskResponseDTO getTaskById(UUID guid) {
+    public TaskResponseDTO getTaskById(@NotNull UUID guid) {
         Task task = taskRepository.findById(guid)
                 .orElseThrow(() -> new NotFoundException("Chosen task not found"));
 
         return taskMapper.mapToResponseDTO(task);
     }
 
-    public TaskResponseDTO addTask(TaskReceiveDTO taskDTO) {
+    public TaskResponseDTO addTask(@Valid TaskReceiveDTO taskDTO) {
         User user = userRepository.findById(userService.getLoggedUserId()).orElseThrow(() -> new NotFoundException("User not found"));
 
         Category category = categoryRepository.findById(taskDTO.getCategoryId())
@@ -92,7 +97,7 @@ public class TaskService {
     }
 
     @Transactional
-    public TaskResponseDTO updateTask(TaskReceiveDTO taskDTO, UUID id) {
+    public TaskResponseDTO updateTask(@Valid TaskReceiveDTO taskDTO, @NotNull UUID id) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Chosen task not found"));
 
         task.setTitle(taskDTO.getTitle());
@@ -110,7 +115,7 @@ public class TaskService {
         return taskMapper.mapToResponseDTO(task);
     }
 
-    public void deleteTask(UUID id) {
+    public void deleteTask(@NotNull UUID id) {
         Task task = taskRepository.findById(id).orElseThrow(() -> new NotFoundException("Chosen task not found"));
         taskRepository.delete(task);
     }
@@ -150,19 +155,19 @@ public class TaskService {
     }
 
     public TasksDashboard getTasksDashboard() {
-        List<Task> tasks = taskRepository.findByUserId(userService.getLoggedUserId());
+        UUID userid = userService.getLoggedUserId();
 
-        int totalTasks = tasks.size();
+        long totalTasks = dashboardJdbcDao.countAll(userid);
 
         if (totalTasks == 0) {
             return new TasksDashboard();
         }
 
-        long todo = tasks.stream().filter(task -> task.getStatus() == Status.TODO).count();
+        long todo = dashboardJdbcDao.countByStatus(userid, Status.TODO);
 
-        long inProgress = tasks.stream().filter(task -> task.getStatus() == Status.IN_PROGRESS).count();
+        long inProgress = dashboardJdbcDao.countByStatus(userid, Status.IN_PROGRESS);
 
-        long done = tasks.stream().filter(task -> task.getStatus() == Status.DONE).count();
+        long done = dashboardJdbcDao.countByStatus(userid, Status.DONE);
 
         float completedProcent = (done * 100f) / totalTasks;
 
@@ -176,7 +181,7 @@ public class TaskService {
         return tasksDashboard;
     }
 
-    public TaskResponseDTO updateStatus(Status newStatus, UUID taskId) {
+    public TaskResponseDTO updateStatus(@NotNull Status newStatus, @NotNull UUID taskId) {
         Task task = taskRepository.findById(taskId).orElseThrow(() -> new NotFoundException("Chosen task not found"));
 
         task.setStatus(newStatus);

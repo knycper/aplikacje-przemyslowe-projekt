@@ -8,7 +8,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class TasksDashboard {
-    private int together = 0;
+    private long together = 0;
 
     private long TODO = 0L;
 

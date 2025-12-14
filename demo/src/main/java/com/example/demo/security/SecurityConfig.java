@@ -36,7 +36,6 @@ public class SecurityConfig {
 
         // Reguły dostępu
         http.authorizeHttpRequests(auth -> auth
-                // Swagger (musi być publiczny)
                 .requestMatchers(
                         "/swagger-ui.html",
                         "/swagger-ui/**",

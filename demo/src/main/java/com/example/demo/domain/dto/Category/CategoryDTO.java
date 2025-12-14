@@ -9,11 +9,12 @@ import java.util.UUID;
 @Getter
 @Setter
 public class CategoryDTO {
+    @NotBlank(message = "ID must not be blank")
     private UUID id;
 
-    @NotBlank
+    @NotBlank(message = "Name must not be blank")
     private String name;
 
-    @NotBlank
+    @NotBlank(message = "Color mus not be blank")
     private String color;
 }

@@ -1,7 +1,7 @@
 package com.example.demo.domain.dto.Task;
 
 import com.example.demo.domain.dto.Category.CategoryDTO;
-import com.example.demo.domain.entity.Status;
+import com.example.demo.domain.enums.Status;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;

@@ -1,10 +1,10 @@
 package com.example.demo.controller.api;
 
-import com.example.demo.domain.dto.Category.CategoryDTO;
 import com.example.demo.domain.dto.Task.TaskReceiveDTO;
 import com.example.demo.domain.dto.Task.TaskResponseDTO;
 import com.example.demo.domain.dto.Task.TasksDashboard;
-import com.example.demo.domain.entity.Status;
+import com.example.demo.domain.enums.DeadlineFilter;
+import com.example.demo.domain.enums.Status;
 import com.example.demo.service.TaskService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,13 +12,15 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import org.springdoc.core.annotations.ParameterObject;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 import java.util.UUID;
 
 @Tag(
@@ -49,11 +51,14 @@ public class TaskController {
                             schema = @Schema(implementation = TaskResponseDTO.class))),
     })
     @GetMapping
-    public ResponseEntity<List<TaskResponseDTO>> getTasks(
+    public ResponseEntity<Page<TaskResponseDTO>> getTasks(
+            @RequestParam(required = false) @Schema(description = "Search by title") String title,
             @RequestParam(required = false) @Schema(description = "Filter tasks by status", example = "TODO") Status status,
-            @RequestParam(required = false) @Schema(description = "Filter tasks by category ID") UUID categoryId
+            @RequestParam(required = false) @Schema(description = "Filter tasks by category ID") UUID categoryId,
+            @RequestParam(required = false) @Schema(description = "Filter tasks by before or after deadline") DeadlineFilter deadlineFilter,
+            @Schema(description = "Paging and sorting") @ParameterObject Pageable pageable
     ) {
-        return ResponseEntity.ok(taskService.getFilteredTasks(status, categoryId));
+        return ResponseEntity.ok(taskService.getTasks(title, status, categoryId, deadlineFilter, pageable));
     }
 
 
@@ -68,7 +73,7 @@ public class TaskController {
             @ApiResponse(responseCode = "404", description = "Category not found", content = @Content)
     })
     @PostMapping
-    public ResponseEntity<TaskResponseDTO> createTask(@RequestBody @Schema(description = "Task data to create") TaskReceiveDTO task) {
+    public ResponseEntity<TaskResponseDTO> createTask(@Valid @RequestBody @Schema(description = "Task data to create") TaskReceiveDTO task) {
         return ResponseEntity.status(HttpStatus.CREATED).body(taskService.addTask(task));
     }
 
@@ -100,7 +105,7 @@ public class TaskController {
             @ApiResponse(responseCode = "400", description = "Invalid request data", content = @Content),
     })
     @PutMapping("/{id}")
-    public ResponseEntity<TaskResponseDTO> updateTask(@PathVariable @Schema(description = "Task ID") UUID id, @RequestBody @Schema(description = "Updated task data") TaskReceiveDTO task) {
+    public ResponseEntity<TaskResponseDTO> updateTask(@PathVariable @Schema(description = "Task ID") UUID id, @Valid @RequestBody @Schema(description = "Updated task data") TaskReceiveDTO task) {
         return ResponseEntity.ok(taskService.updateTask(task, id));
     }
 
