@@ -65,7 +65,7 @@ public class SecurityConfig {
         http.formLogin(login -> login
                 .loginPage("/login")               // GET /login -> strona logowania
                 .loginProcessingUrl("/login")      // POST /login -> obsługa logowania
-                .defaultSuccessUrl("/", true) // po logowaniu idzie na /
+                .defaultSuccessUrl("/tasks", true) // po logowaniu idzie na /
                 .permitAll()
         );
 

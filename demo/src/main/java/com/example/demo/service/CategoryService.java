@@ -74,12 +74,12 @@ public class CategoryService {
 
     @Transactional
     public void deleteCategory(@NotNull UUID id) {
+        taskRepository.clearCategory(id);
+
         int deleted = categoryDao.delete(id);
 
         if (deleted == 0) {
             throw new NotFoundException("Category not found");
         }
-
-        taskRepository.clearCategory(id);
     }
 }

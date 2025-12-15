@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface TaskRepository extends JpaRepository<Task, UUID> {
+    // czyscimy cache aby zaktualizowane dane byly, zapisuje zmiany do bazy przed wykonaniem zapytania
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("UPDATE Task t SET t.category = null where t.category.id = :categoryId")
     void clearCategory(@Param("categoryId") UUID categoryId);

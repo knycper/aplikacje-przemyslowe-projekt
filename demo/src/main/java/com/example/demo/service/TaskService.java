@@ -80,8 +80,12 @@ public class TaskService {
     public TaskResponseDTO addTask(@Valid TaskReceiveDTO taskDTO) {
         User user = userRepository.findById(userService.getLoggedUserId()).orElseThrow(() -> new NotFoundException("User not found"));
 
-        Category category = categoryRepository.findById(taskDTO.getCategoryId())
-                .orElseThrow(() -> new NotFoundException("Chosen category not found"));
+        Category category = null;
+
+        if (taskDTO.getCategoryId() != null) {
+            category = categoryRepository.findById(taskDTO.getCategoryId())
+                    .orElseThrow(() -> new NotFoundException("Chosen category not found"));
+        }
 
         Task task = new Task();
         task.setTitle(taskDTO.getTitle());
