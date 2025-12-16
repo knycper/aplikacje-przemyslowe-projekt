@@ -6,11 +6,12 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.security.config.annotation.web.configurers.HeadersConfigurer;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.util.matcher.AntPathRequestMatcher;
 
 @Configuration
 @EnableWebSecurity
@@ -25,12 +26,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
 
-        http.csrf(csrf -> csrf.disable());
+        http.csrf(AbstractHttpConfigurer::disable);
 
         http.exceptionHandling(exception -> exception
                 .defaultAuthenticationEntryPointFor(
+                        // wola funkcje nizej aby nie wysylac html z loginem
                         restAuthenticationEntryPoint(),
-                        new AntPathRequestMatcher("/api/**")
+                        request -> request.getRequestURI().startsWith("/api/")
                 )
         );
 
@@ -42,7 +44,7 @@ public class SecurityConfig {
                         "/v3/api-docs/**"
                 ).permitAll()
 
-                // rejestracja i logowanie — oczywiście muszą być publiczne
+                // rejestracja i logowanie — muszą być publiczne
                 .requestMatchers(
                         "/api/auth/register",
                         "/login",
@@ -65,7 +67,7 @@ public class SecurityConfig {
         http.formLogin(login -> login
                 .loginPage("/login")               // GET /login -> strona logowania
                 .loginProcessingUrl("/login")      // POST /login -> obsługa logowania
-                .defaultSuccessUrl("/tasks", true) // po logowaniu idzie na /
+                .defaultSuccessUrl("/tasks", true) // po logowaniu idzie na /tasks
                 .permitAll()
         );
 
@@ -75,7 +77,9 @@ public class SecurityConfig {
                 .permitAll()
         );
 
-        http.headers(headers -> headers.frameOptions().disable());
+        http.headers(headers ->
+                headers.frameOptions(HeadersConfigurer.FrameOptionsConfig::disable)
+        );
 
         return http.build();
     }

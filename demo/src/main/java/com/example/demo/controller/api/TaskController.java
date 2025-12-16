@@ -56,7 +56,7 @@ public class TaskController {
             @RequestParam(required = false) @Schema(description = "Filter tasks by status", example = "TODO") Status status,
             @RequestParam(required = false) @Schema(description = "Filter tasks by category ID") UUID categoryId,
             @RequestParam(required = false) @Schema(description = "Filter tasks by before or after deadline") DeadlineFilter deadlineFilter,
-            @Schema(description = "Paging and sorting") @ParameterObject Pageable pageable
+            @ParameterObject Pageable pageable
     ) {
         return ResponseEntity.ok(taskService.getTasks(title, status, categoryId, deadlineFilter, pageable));
     }

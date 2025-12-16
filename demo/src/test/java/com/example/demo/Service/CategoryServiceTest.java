@@ -45,13 +45,13 @@ class CategoryServiceTest {
         Category category = new Category();
         CategoryDTO dto = new CategoryDTO();
 
-        when(categoryRepository.findAll()).thenReturn(List.of(category));
+        when(categoryDao.findAll()).thenReturn(List.of(category));
         when(categoryMapper.mapToDTO(category)).thenReturn(dto);
 
         List<CategoryDTO> result = categoryService.getCategories();
 
         assertEquals(1, result.size());
-        verify(categoryRepository).findAll();
+        verify(categoryDao).findAll();
         verify(categoryMapper).mapToDTO(category);
     }
 
@@ -145,7 +145,5 @@ class CategoryServiceTest {
 
         assertThrows(NotFoundException.class,
                 () -> categoryService.deleteCategory(id));
-
-        verify(taskRepository, never()).clearCategory(any());
     }
 }

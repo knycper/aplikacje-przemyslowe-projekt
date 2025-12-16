@@ -2,7 +2,6 @@ package com.example.demo.domain.dto.Task;
 
 import com.example.demo.domain.enums.Status;
 import jakarta.annotation.Nullable;
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -30,6 +29,5 @@ public class TaskReceiveDTO {
     private UUID categoryId;
 
     @NotNull(message = "Due date must not be null")
-    @Future(message = "Due date must be in the future")
     private LocalDateTime dueDate;
 }

@@ -36,7 +36,7 @@ public class CategoryService {
     }
 
     public List<CategoryDTO> getCategories() {
-        return categoryRepository.findAll().stream().map(categoryMapper::mapToDTO).collect(Collectors.toList());
+        return categoryDao.findAll().stream().map(categoryMapper::mapToDTO).collect(Collectors.toList());
     }
 
     public CategoryDTO getCategoryById(@NotNull UUID id) {

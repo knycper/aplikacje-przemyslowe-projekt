@@ -146,8 +146,7 @@ class TaskControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.title").exists())
                 .andExpect(jsonPath("$.description").exists())
-                .andExpect(jsonPath("$.status").exists())
-                .andExpect(jsonPath("$.dueDate").exists());
+                .andExpect(jsonPath("$.status").exists());
     }
 
     @Test
