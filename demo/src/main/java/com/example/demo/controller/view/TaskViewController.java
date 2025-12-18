@@ -61,6 +61,13 @@ public class TaskViewController {
         return "task-form";
     }
 
+    @DeleteMapping("/delete")
+    public String deleteTask(@RequestParam UUID id) {
+        taskService.deleteTask(id);
+
+        return "redirect:/tasks";
+    }
+
     @PostMapping("/add")
     public String addTask(
             @Valid @ModelAttribute("task") TaskReceiveDTO task,
