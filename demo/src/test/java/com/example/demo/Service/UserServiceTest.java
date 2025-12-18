@@ -39,8 +39,6 @@ class UserServiceTest {
         SecurityContextHolder.clearContext();
     }
 
-    // ===== register() =====
-
     @Test
     void shouldRegisterUserSuccessfully() {
         RegisterDTO dto = new RegisterDTO();
@@ -73,8 +71,6 @@ class UserServiceTest {
 
         verify(userRepository, never()).save(any());
     }
-
-    // ===== getLoggedUserId() =====
 
     @Test
     void shouldReturnLoggedUserId() {
